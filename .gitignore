@@ -1,0 +1,11 @@
+*.json
+*.cfg
+hosts
+.terraform
+terraform.tfstate
+.terraform*
+__pycache__
+.env
+*.json
+*.tfvars
+my_key*

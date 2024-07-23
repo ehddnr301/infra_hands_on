@@ -1,0 +1,53 @@
+- hosts: all
+  become: yes
+  tasks:
+   - name: update apt cache
+     apt:
+       update_cache: yes
+
+   - name: install Docker
+     apt:
+       name: docker.io
+       state: present
+       update_cache: true
+
+   - name: install k8s apt dependencies
+     apt:
+       pkg:
+          - apt-transport-https
+          - curl
+          - ca-certificates
+          - gpg
+       state: present
+       update_cache: true
+
+   - name: Ensure the /etc/apt/keyrings directory exists
+     file:
+       path: /etc/apt/keyrings
+       state: directory
+       mode: '0755'
+       
+   - name: Download and add Kubernetes GPG key
+     shell: >
+       curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key |
+       gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+     args:
+       creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+   - name: Add Kubernetes repository to the sources list
+     apt_repository:
+       repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+       state: present
+       filename: kubernetes
+
+   - name: Update all packages
+     apt:
+       update_cache: yes
+
+   - name: Install Kubernetes packages
+     apt:
+       name:
+         - kubelet
+         - kubeadm
+         - kubectl
+       state: latest

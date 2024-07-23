@@ -1,0 +1,11 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: create the '{{ ansible_user }}' user
+      user: name={{ ansible_user }} append=yes state=present createhome=yes shell=/bin/bash
+ 
+    - name: allow '{{ ansible_user }}' to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        line: '{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'

@@ -1,0 +1,59 @@
+- hosts: workers
+  become: yes
+  tasks:
+    - name: Install nfs-common
+      apt:
+        name: nfs-common
+        state: present
+
+    - name: Create /home/{{ ansible_user }}/logs directory
+      file:
+        path: /home/{{ ansible_user }}/logs
+        state: directory
+        mode: '0777'
+
+- hosts: master
+  become: yes
+  tasks:
+    - name: Install net-tools
+      ansible.builtin.apt:
+        name: net-tools
+        state: present
+      become: yes
+
+    - name: Create /home/{{ ansible_user }}/logs directory
+      file:
+        path: /home/{{ ansible_user }}/logs
+        state: directory
+        mode: '0777'
+
+    - name: Create /home/{{ ansible_user }}/minio directory
+      file:
+        path: /home/{{ ansible_user }}/minio/test
+        state: directory
+        mode: '0777'
+
+    - name: Install nfs-kernel-server
+      apt:
+        name: nfs-kernel-server
+        state: present
+
+    - name: Add export configuration
+      become: true
+      lineinfile:
+        path: /etc/exports
+        line: "/home/{{ ansible_user }}/logs *(rw,sync,no_subtree_check)"
+        state: present
+
+    - name: Add export configuration
+      become: true
+      lineinfile:
+        path: /etc/exports
+        line: "/home/{{ ansible_user }}/minio *(rw,sync,no_subtree_check)"
+        state: present
+
+    - name: Restart nfs-kernel-server
+      become: true
+      service:
+        name: nfs-kernel-server
+        state: restarted
